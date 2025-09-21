@@ -1,10 +1,9 @@
-// Função para redirecionar ao WhatsApp
+
 function hireMe() {
   alert("Você será redirecionado para o WhatsApp do Matheus...");
-  window.open("https://wa.me/5561995189119", "_blank");
+  window.open("https://wa.me/5561992630637", "_blank");
 }
 
-// Cookie de segurança (apenas exemplo - não funcionará no front-end)
 function setSecurityCookie() {
   document.cookie =
     "token=seu_token_aqui; Secure; HttpOnly; SameSite=Strict; max-age=3600; path=/";
