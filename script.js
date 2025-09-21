@@ -1,182 +1,227 @@
+// ===================================================================
+// CONFIGURAÇÕES E CONSTANTES
+// ===================================================================
 
-function hireMe() {
-  alert("Você será redirecionado para o WhatsApp do Matheus...");
-  window.open("https://wa.me/5561992630637", "_blank");
-}
+/**
+ * Comandos disponíveis para o terminal interativo.
+ * Facilita a adição ou remoção de novos comandos.
+ */
+const TERMINAL_COMMANDS = {
+  help: 'Comandos disponíveis:<br>- whoami: Exibe o usuário atual<br>- nmap: Simula uma varredura de portas<br>- clear: Limpa o terminal<br>- sudo: ...<br>- ls: Lista diretórios fictícios',
+  whoami: 'root (superusuário)',
+  nmap: 'Iniciando varredura NMAP...<br><br>22/tcp  open  ssh<br>80/tcp  open  http<br>443/tcp open  https<br><br>Varredura concluída!',
+  clear: (outputElement) => {
+    outputElement.innerHTML = '';
+  },
+  sudo: 'Bela tentativa! 😈 (Mas não execute comandos `sudo` sem saber o que está fazendo!)',
+  ls: 'Pentest_Reports/<br>Scripts/<br>Tools/<br>passwords.txt (brincadeira 😜)',
+};
 
-function setSecurityCookie() {
-  document.cookie =
-    "token=seu_token_aqui; Secure; HttpOnly; SameSite=Strict; max-age=3600; path=/";
-}
+// ===================================================================
+// FUNÇÕES DE INICIALIZAÇÃO (MÓDULOS)
+// ===================================================================
 
-// Toggle de tema claro/escuro
-function toggleTheme() {
-  document.body.classList.toggle("light-mode");
-  localStorage.setItem(
-    "theme",
-    document.body.classList.contains("light-mode") ? "light" : "dark"
-  );
-}
-
-// Terminal Interativo
-function initTerminal() {
-  const terminalOutput = document.getElementById("terminal-output");
-  const terminalCommand = document.getElementById("terminal-command");
-
-  if (!terminalOutput || !terminalCommand) {
-    console.error("Elementos do terminal não encontrados!");
-    return;
-  }
-
-  // Efeito de digitação
-  const typeWriter = (text, speed = 20) => {
-    let i = 0;
-    terminalOutput.innerHTML += '<span class="typing"></span>';
-    const typingSpan = terminalOutput.querySelector(".typing:last-child");
-
-    const timer = setInterval(() => {
-      if (i < text.length) {
-        typingSpan.innerHTML += text.charAt(i);
-        i++;
-        terminalOutput.scrollTop = terminalOutput.scrollHeight;
-      } else {
-        clearInterval(timer);
-        typingSpan.classList.remove("typing");
-      }
-    }, speed);
-  };
-
-  // Comandos disponíveis
-  const commands = {
-    help: "Comandos disponíveis:\n- help: Lista de comandos\n- whoami: Mostra seu usuário\n- nmap: Simula varredura de portas\n- clear: Limpa o terminal",
-    whoami: "root (superusuário)",
-    nmap: "Iniciando varredura NMAP...\n\n22/tcp   open  ssh\n80/tcp   open  http\n443/tcp  open  https\n\nVarredura concluída!",
-    clear: () => {
-      terminalOutput.innerHTML = "";
-    },
-    sudo: "Nice try! 😈 (Mas não execute comandos sudo sem saber o que está fazendo!)",
-    ls: "Pentest_Reports\nScripts\nTools\npasswords.txt (just kidding 😜)",
-  };
-
-  // Mensagem inicial
-  typeWriter(
-    "Bem-vindo ao terminal simulador de hacker ético.\nDigite 'help' para ver os comandos disponíveis.\n\n"
-  );
-
-  // Captura de comandos
-  terminalCommand.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
-      const command = terminalCommand.value.trim();
-      terminalCommand.value = "";
-
-      terminalOutput.innerHTML += `<div><span class="prompt">$</span> ${command}</div>`;
-
-      if (commands[command]) {
-        if (typeof commands[command] === "function") {
-          commands[command]();
-        } else {
-          typeWriter(commands[command] + "\n\n");
-        }
-      } else if (command) {
-        typeWriter(
-          `Comando não encontrado: ${command}\nDigite 'help' para ajuda.\n\n`
-        );
-      }
-
-      terminalOutput.scrollTop = terminalOutput.scrollHeight;
-    }
-  });
-}
-
-// Carrega tudo quando o DOM estiver pronto
-document.addEventListener("DOMContentLoaded", () => {
-  // Aplica tema salvo
-  if (localStorage.getItem("theme") === "light") {
-    document.body.classList.add("light-mode");
-  }
-
-  // Inicializa o terminal
-  initTerminal();
-
-  // Configura cookie (apenas para demonstração)
-  setSecurityCookie();
-});
-
-// Scroll Animation
+/**
+ * Inicializa a animação de scroll, adicionando a classe 'animate'
+ * aos elementos quando eles entram na tela.
+ */
 function initScrollAnimation() {
-  const animateOnScroll = () => {
-    const elements = document.querySelectorAll("[data-anime]");
-    const windowTop = window.scrollY + window.innerHeight * 0.75;
+  const elements = document.querySelectorAll('[data-anime]');
+  if (elements.length === 0) return;
 
+  const animateOnScroll = () => {
+    const windowTop = window.scrollY + window.innerHeight * 0.85;
     elements.forEach((element) => {
       if (windowTop > element.offsetTop) {
-        element.classList.add("animate");
+        element.classList.add('animate');
       }
     });
   };
 
-  // Debounce para performance
+  // Otimiza a performance evitando execuções excessivas do scroll
   let debounceTimeout;
-  window.addEventListener("scroll", () => {
+  window.addEventListener('scroll', () => {
     clearTimeout(debounceTimeout);
-    debounceTimeout = setTimeout(animateOnScroll, 16);
+    debounceTimeout = setTimeout(animateOnScroll, 20);
   });
 
-  // Executa uma vez ao carregar
-  animateOnScroll();
+  animateOnScroll(); // Executa uma vez ao carregar a página
 }
 
-// Adicione esta linha no seu DOMContentLoaded
-document.addEventListener("DOMContentLoaded", () => {
-  initScrollAnimation();
-  // ... outros inits
-});
+/**
+ * Inicializa o observador para o efeito de digitação no subtítulo,
+ * reiniciando a animação sempre que o elemento se torna visível.
+ */
+function initTypingEffectObserver() {
+  const subtitle = document.querySelector('.hacker-subtitle');
+  if (!subtitle) return;
 
-function typeWriterEffect() {
-  const elements = document.querySelectorAll("[data-typewriter]");
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const typingElement = entry.target.querySelector('.typing-effect');
+          if (!typingElement) return;
 
-  elements.forEach((el) => {
-    const text = el.getAttribute("data-typewriter");
+          // Força o reinício da animação CSS
+          typingElement.style.animation = 'none';
+          void typingElement.offsetWidth; // Trigger reflow
+          typingElement.style.animation = null;
+        }
+      });
+    }, {
+      threshold: 0.5
+    }
+  );
+
+  observer.observe(subtitle);
+}
+
+/**
+ * Inicializa o terminal interativo.
+ */
+function initTerminal() {
+  const terminalOutput = document.getElementById('terminal-output');
+  const terminalCommand = document.getElementById('terminal-command');
+
+  if (!terminalOutput || !terminalCommand) {
+    console.error('Elementos do terminal não encontrados!');
+    return;
+  }
+
+  // Função para simular o efeito de digitação no terminal
+  const typeWriter = (text, speed = 15) => {
+    terminalOutput.innerHTML += '<span class="typing"></span>';
+    const typingSpan = terminalOutput.querySelector('.typing:last-child');
+    if (!typingSpan) return;
+
     let i = 0;
-    el.textContent = "";
-
     const timer = setInterval(() => {
       if (i < text.length) {
-        el.textContent += text.charAt(i);
+        typingSpan.innerHTML += text.charAt(i) === '\n' ? '<br>' : text.charAt(i);
         i++;
+        terminalOutput.scrollTop = terminalOutput.scrollHeight;
       } else {
         clearInterval(timer);
+        typingSpan.classList.remove('typing');
       }
-    }, 100);
+    }, speed);
+  };
+
+  // Captura de comandos do usuário
+  terminalCommand.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter') return;
+
+    const command = terminalCommand.value.trim().toLowerCase();
+    terminalCommand.value = '';
+    terminalOutput.innerHTML += `<div><span class="prompt">$</span> ${command}</div>`;
+
+    if (command) {
+      const response = TERMINAL_COMMANDS[command];
+      if (response) {
+        if (typeof response === 'function') {
+          response(terminalOutput); // Passa o elemento de saída para a função 'clear'
+        } else {
+          typeWriter(response + '\n\n');
+        }
+      } else {
+        typeWriter(`Comando não encontrado: ${command}\nDigite 'help' para ajuda.\n\n`);
+      }
+    }
+    terminalOutput.scrollTop = terminalOutput.scrollHeight;
+  });
+
+  // Mensagem inicial do terminal
+  typeWriter(
+    "Bem-vindo ao terminal simulador de hacker ético.\nDigite 'help' para ver os comandos.\n\n"
+  );
+}
+
+/**
+ * Inicializa a lógica de envio assíncrono do formulário de contato.
+ */
+function initContactForm() {
+  const form = document.getElementById('contact-form');
+  const statusDiv = document.getElementById('form-status');
+
+  if (!form || !statusDiv) return;
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    const submitButton = form.querySelector('.btn-submit');
+    const formData = new FormData(form);
+
+    submitButton.disabled = true;
+    submitButton.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> Transmitindo...';
+    statusDiv.style.display = 'none'; // Esconde a mensagem anterior
+
+    try {
+      const response = await fetch(event.target.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+          Accept: 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        statusDiv.innerHTML = '[SUCCESS] Transmissão recebida. Aguarde o retorno.';
+        statusDiv.className = 'success';
+        form.reset();
+      } else {
+        statusDiv.innerHTML = '[ERROR] Falha na transmissão. Verifique os dados e tente novamente.';
+        statusDiv.className = 'error';
+      }
+    } catch (error) {
+      console.error('Erro no envio do formulário:', error);
+      statusDiv.innerHTML = '[FATAL_ERROR] Conexão com o servidor perdida. Tente mais tarde.';
+      statusDiv.className = 'error';
+    } finally {
+      submitButton.disabled = false;
+      submitButton.innerHTML = '<i class="fas fa-paper-plane"></i> Transmitir Mensagem';
+      statusDiv.style.display = 'block'; // Mostra a mensagem de status
+    }
   });
 }
 
-// Exemplo de debug
-elements.forEach((el) => {
-  console.log(`Elemento: ${el.tagName}, Posição: ${el.offsetTop}`);
-});
+// ===================================================================
+// FUNÇÕES UTILITÁRIAS
+// ===================================================================
 
-// Controle de efeitos de digitação
-document.addEventListener("DOMContentLoaded", function () {
-  const subtitles = document.querySelectorAll(".hacker-subtitle");
+/**
+ * Aplica o tema (claro/escuro) salvo no localStorage.
+ */
+function applySavedTheme() {
+  if (localStorage.getItem('theme') === 'light') {
+    document.body.classList.add('light-mode');
+  }
+}
 
-  subtitles.forEach((subtitle) => {
-    // Garante que o efeito reinicie quando o elemento estiver visível
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const typingElement = entry.target.querySelector(".typing-effect");
-            typingElement.style.animation = "none";
-            void typingElement.offsetWidth; // Trigger reflow
-            typingElement.style.animation =
-              "typing 3.5s steps(50) 1s 1 normal both";
-          }
-        });
-      },
-      { threshold: 0.5 }
-    );
+/**
+ * Define um cookie de segurança (apenas para demonstração).
+ */
+function setSecurityCookie() {
+  document.cookie =
+    'session_token=demo123; Secure; HttpOnly; SameSite=Strict; max-age=3600; path=/';
+}
 
-    observer.observe(subtitle);
-  });
+// ===================================================================
+// PONTO DE ENTRADA PRINCIPAL DA APLICAÇÃO
+// ===================================================================
+
+/**
+ * Aguarda o carregamento completo do DOM para iniciar os scripts.
+ */
+document.addEventListener('DOMContentLoaded', () => {
+  applySavedTheme();
+  setSecurityCookie(); // Apenas para demonstração de boas práticas
+
+  // Inicializa todos os módulos interativos
+  initScrollAnimation();
+  initTypingEffectObserver();
+  initTerminal();
+  initContactForm();
+
+  console.log('Sistema inicializado. Pronto para operar.');
 });
